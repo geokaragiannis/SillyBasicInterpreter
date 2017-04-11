@@ -81,7 +81,8 @@
     (if (null? (cdr line))
         0
         [ if (symbol? (cadr line))
-              (label-put! (cadr line) (car line))
+              ; store label, the whole line (?)
+              (label-put! (cadr line) line)
               0]
     ) 
 )
