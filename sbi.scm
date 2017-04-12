@@ -37,6 +37,39 @@
 (variable-put! 'pi 3.141592653589793238462643383279502884197169399)
 (variable-put! 'e 2.718281828459045235360287471352662497757247093)
 
+;put values in function hash table
+(for-each
+        (lambda (pair)
+                (function-put! (car pair) (cadr pair)))
+
+        `(
+
+                (+ ,+)
+                (- ,-)
+                (/ ,/)
+                (% ,(lambda (x y) (- x (* (truncate (/ x y)) y))))
+                (^ ,expt)
+                (abs ,abs)
+                (acos ,acos)
+                (asin ,asin)
+                (atan ,atan)
+                (ceil ,ceiling)
+                (cos ,cos)
+                (exp ,exp)
+                (floor ,floor)
+                (log ,log)
+                (log10 ,(lambda (x) (/ (log x) (log 10.0))))
+                (log2 ,(lambda (x) (/ (log x) (log 2.0))))
+                (round ,round)
+                (sin ,sin)
+                (sqrt ,sqrt)
+                (tan ,tan)
+                (trunc ,truncate)  
+
+        )
+
+)
+
 
 (define *stderr* (current-error-port))
 
@@ -73,7 +106,7 @@
     (map (lambda (line) (printf "~s~n" line)) program) 
     (printf ")~n"))
 
-(define (add-line-to-label line) 
+(define (add-line-to-label prgram line) 
     ;; first checks to see if the cdr is null, in which case there is no
     ;; label so return 0. otherwise, check to see if the cadr is a symbol,
     ;; if so, the symbol is the label so add it to the hash table. otherwise
@@ -81,11 +114,41 @@
     (if (null? (cdr line))
         0
         [ if (symbol? (cadr line))
-              ; store label, the whole line (?)
-              (label-put! (cadr line) line)
+              ; store label, the whole line
+              (label-put! (cadr line) (get_sub_program prgram (car line)))
               0]
     ) 
 )
+      
+
+
+(define (has_label line)
+
+    
+    
+   (if (null? (cdr line))
+        0
+        ; if cadr is a label return true
+        [ if (symbol? (cadr line)) #t #f]
+    ) 
+)
+
+;make sure calling function checks whether cdr of line is not null
+;(define (interpret line)
+ ;   
+  ;  (define stmt (if (has_label line) (caddr line) (cadr line) ))
+    
+
+
+
+
+;)
+
+(define (get_sub_program prgram line_num)
+
+    (if (= line_num 1) prgram (get_sub_program (cdr prgram) (- line_num 1)))
+)
+
 
 (define (main arglist)
     (if (or (null? arglist) (not (null? (cdr arglist))))
@@ -93,7 +156,7 @@
         ;; else statement
         (let* ((sbprogfile (car arglist))
                (program (readlist-from-inputfile sbprogfile))) 
-               (map (lambda(line) (add-line-to-label line)) program)           
+               (map (lambda(line) (add-line-to-label program line)) program)           
                ;printing labels
                (hash-for-each *label-table*
                     (lambda (key value)
@@ -106,9 +169,16 @@
                         (printf "~s : ~s ~n" key value))
                )
 
-                
+               (newline)
+               ;printing variables
+               (hash-for-each *function-table*
+                    (lambda (key value)
+                        (printf "~s : ~s ~n" key value))
+               )
 
              ; (write-program-by-line sbprogfile program)
 )))
 
 (main (vector->list (current-command-line-arguments)))
+
+
