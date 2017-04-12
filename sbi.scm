@@ -120,12 +120,7 @@
     ) 
 )
       
-
-
-(define (has_label line)
-
-    
-    
+(define (has_label line) 
    (if (null? (cdr line))
         0
         ; if cadr is a label return true
@@ -137,13 +132,12 @@
 ;(define (interpret line)
  ;   
   ;  (define stmt (if (has_label line) (caddr line) (cadr line) ))
-    
-
-
-
 
 ;)
 
+;; Takes the entire program as an argument and a line number
+;; If the program has n lines and the line_num is l, then the
+;; function returns the sub-program from l to n. 
 (define (get_sub_program prgram line_num)
 
     (if (= line_num 1) prgram (get_sub_program (cdr prgram) (- line_num 1)))
