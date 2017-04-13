@@ -178,8 +178,8 @@
                 (cdr prgram)
             ]
             ;; case 2 and 3 so there is a statement that must be executed.
-            [ else (
-                let ((stmt (if (has_label line) (caddr line) (cadr line) )))
+            [ else 
+                (let ((stmt (if (has_label line) (caddr line) (cadr line) )))
                     ;let body
                     (printf "Statement: ~s~n" stmt)
                     ;(cdr prgram)
@@ -187,7 +187,20 @@
                     (cond
                         [ (eqv? (car stmt) 'dim)
                             (printf "Stmt is dim~n")
-                            (printf "Array name: ~s~n~n" (caadr stmt))
+                            (printf "Array name: ~s~n" (caadr stmt))
+                            ;; array can either be initialized with a literal number or with another variable
+                            (cond
+                                ;; array dimensionality is specified by a number
+                                [ (number? (cadadr stmt))
+                                   (variable-put! (caadr stmt) (make-vector (cadadr stmt))) 
+                                ]
+                                ;; array dimensionality is specified by a variable 
+                                [ else
+                                    ;; uncomment when let works
+                                    (printf "let must be implemented. in dim~n~n")
+                                    ;(variable-put! (caadr stmt) (make-vector (variable-get (cadadr stmt))))
+                                ]
+                            )
                             (cdr prgram)
                         
                         ]
@@ -272,23 +285,23 @@
 
 
                ;printing labels
-               ;(hash-for-each *label-table*
-               ;     (lambda (key value)
-               ;         (printf "~s : ~s ~n" key value))
-               ;)
+               #|(hash-for-each *label-table*
+                    (lambda (key value)
+                        (printf "~s : ~s ~n" key value))
+               )|#
                ;(newline)
-               ;printing variables
-               ;(hash-for-each *variable-table*
-               ;     (lambda (key value)
-               ;         (printf "~s : ~s ~n" key value))
-               ;)
+               ;printing variables 
+              #| (hash-for-each *variable-table*
+                    (lambda (key value)
+                        (printf "~s : ~s ~n" key value))
+               )|#
 
                ;(newline)
                ;printing variables
-               ;(hash-for-each *function-table*
-               ;     (lambda (key value)
-               ;         (printf "~s : ~s ~n" key value))
-               ;)
+               #|(hash-for-each *function-table*
+                    (lambda (key value)
+                        (printf "~s : ~s ~n" key value))
+               )|#
 
 
              ; (write-program-by-line sbprogfile program)
