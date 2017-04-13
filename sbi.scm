@@ -135,6 +135,48 @@
 
 ;)
 
+(define (interpret prgram)
+   ; (define stmt '())
+    (printf "program: ~s~n" prgram)
+    (define line (car prgram))
+    (printf "line: ~s~n" line)
+    (if (null? (cdr line))
+        ; then
+        (
+            (printf "Cdr is null~n")
+            (printf "cdr prgram: ~s~n" (cdr prgram))
+            (cdr prgram)
+           
+        )
+        ; else
+        (
+        (printf "In else~n")
+        (if ((and (has_label line) (null? (cddr line))))
+            ; then 
+            ((cdr prgram))
+            ; else, the line contains a statement (can either have a label or not have one)
+            (
+                (let ((stmt (if (has_label line) (caddr line) (cadr line) )))
+                        (printf "hey")
+                ) 
+            )
+
+        ))
+    ) 
+)
+
+(define (interpreter prgram)
+    (printf "12~n")
+    (printf "call to interpret prgram: ~s~n" (interpret prgram))
+    (define sub_program (interpret prgram))
+    (printf "sub_program: ~s~n" sub_program)
+    ;; if the sub_program is null, then the program has completed interpreting so exit
+    ;; otherwise recursively call interpreter on the sub-program
+    (if (null? sub_program)
+        0
+        (interpreter sub_program))
+)
+
 ;; Takes the entire program as an argument and a line number
 ;; If the program has n lines and the line_num is l, then the
 ;; function returns the sub-program from l to n. 
@@ -151,24 +193,30 @@
         (let* ((sbprogfile (car arglist))
                (program (readlist-from-inputfile sbprogfile))) 
                (map (lambda(line) (add-line-to-label program line)) program)           
-               ;printing labels
-               (hash-for-each *label-table*
-                    (lambda (key value)
-                        (printf "~s : ~s ~n" key value))
-               )
-               (newline)
-               ;printing variables
-               (hash-for-each *variable-table*
-                    (lambda (key value)
-                        (printf "~s : ~s ~n" key value))
-               )
+              
+               (interpreter program)
 
-               (newline)
+
+
+               ;printing labels
+               ;(hash-for-each *label-table*
+               ;     (lambda (key value)
+               ;         (printf "~s : ~s ~n" key value))
+               ;)
+               ;(newline)
                ;printing variables
-               (hash-for-each *function-table*
-                    (lambda (key value)
-                        (printf "~s : ~s ~n" key value))
-               )
+               ;(hash-for-each *variable-table*
+               ;     (lambda (key value)
+               ;         (printf "~s : ~s ~n" key value))
+               ;)
+
+               ;(newline)
+               ;printing variables
+               ;(hash-for-each *function-table*
+               ;     (lambda (key value)
+               ;         (printf "~s : ~s ~n" key value))
+               ;)
+
 
              ; (write-program-by-line sbprogfile program)
 )))
