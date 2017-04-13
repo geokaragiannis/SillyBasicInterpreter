@@ -186,9 +186,10 @@
                     ;; go through the cases of all possible types of statements
                     (cond
                         [ (eqv? (car stmt) 'dim)
-                            (printf "Stmt is dim~n")
-                            (printf "Array name: ~s~n" (caadr stmt))
+                            (printf "Stmt is dim~n")                         
                             ;; array can either be initialized with a literal number or with another variable
+                            ;; In both cases, array name is specified by (caadr stmt) and the dimensionality
+                            ;; is specified by the (cadadr stmt)
                             (cond
                                 ;; array dimensionality is specified by a number
                                 [ (number? (cadadr stmt))
@@ -212,8 +213,12 @@
                         ]
 
                         [ (eqv? (car stmt) 'goto)
+                            ;; need to return the subprogram corresponding to the label following the goto
+                            ;; rather than just returnin the cdr of the program
                             (printf "Stmt is goto~n~n")
-                            (cdr prgram)
+                            ;; watch out, may cause infinite loops in some programs because let is not implemented
+                            (label-get (cadr stmt))
+                            ;(cdr prgram)
                         
                         ]
 
