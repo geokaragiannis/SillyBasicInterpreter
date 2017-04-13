@@ -140,40 +140,69 @@
     (printf "program: ~s~n" prgram)
     (define line (car prgram))
     (printf "line: ~s~n" line)
-    (if (null? (cdr line))
+    #|[if ((null? (cdr line)))
         ; then
         (
-            (printf "Cdr is null~n")
-            (printf "cdr prgram: ~s~n" (cdr prgram))
+            ;(printf "Cdr is null~n")
+            ;(printf "cdr prgram: ~s~n" (cdr prgram))
             (cdr prgram)
            
         )
         ; else
         (
-        (printf "In else~n")
-        (if ((and (has_label line) (null? (cddr line))))
-            ; then 
-            ((cdr prgram))
-            ; else, the line contains a statement (can either have a label or not have one)
-            (
-                (let ((stmt (if (has_label line) (caddr line) (cadr line) )))
-                        (printf "hey")
-                ) 
-            )
+            (printf "In else~n")
+            [if ((and ((has_label line)) ((null? (cddr line)))))
+                ; then 
+                ((cdr prgram))
+                ; else, the line contains a statement (can either have a label or not have one)
+                (
+                    (let ((stmt (if (has_label line) (caddr line) (cadr line) )))
+                            (printf "hey")
+                    ) 
+                )
+            ]
+        )
+    ]|#
 
-        ))
-    ) 
+    (cond 
+        [ (null? (cdr line))
+            (printf "Cdr is null~n")
+            (printf "cdr prgram: ~s~n" (cdr prgram))
+            (cdr prgram)     
+        ]
+        [ else (cond
+            [
+                (and (has_label line) (null? (cddr line)))
+                (cdr prgram)
+            ]
+            [else (
+                 let ((stmt (if (has_label line) (caddr line) (cadr line) )))
+                            (printf "hey~n")
+                            (printf "Statement: ~s~n" stmt)
+                (cdr prgram)
+                     
+
+            
+                )
+            ]
+
+        )         
+            
+        ]
+          
+    )
+ 
 )
 
 (define (interpreter prgram)
     (printf "12~n")
-    (printf "call to interpret prgram: ~s~n" (interpret prgram))
+   ; (printf "call to interpret prgram: ~s~n" (interpret prgram))
     (define sub_program (interpret prgram))
     (printf "sub_program: ~s~n" sub_program)
     ;; if the sub_program is null, then the program has completed interpreting so exit
     ;; otherwise recursively call interpreter on the sub-program
     (if (null? sub_program)
-        0
+        (printf "lol~n")
         (interpreter sub_program))
 )
 
