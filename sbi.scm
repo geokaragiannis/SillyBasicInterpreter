@@ -136,8 +136,7 @@
 ;)
 
 (define (interpret prgram)
-   ; (define stmt '())
-    (printf "program: ~s~n" prgram)
+    ;(printf "program: ~s~n" prgram)
     (define line (car prgram))
     (printf "line: ~s~n" line)
     #|[if ((null? (cdr line)))
@@ -165,24 +164,70 @@
     ]|#
 
     (cond 
-        [ (null? (cdr line))
-            (printf "Cdr is null~n")
-            (printf "cdr prgram: ~s~n" (cdr prgram))
+        ;; if cdr of line is null then there is only a line number, so
+        ;; only return 
+        [ (null? (cdr line)) 
             (cdr prgram)     
         ]
+        ;; cdr of the line is not null, so line may fall into one of the cases:
+        ;; 1. it has just a label 2. it has a label and a statement 3. it has just a statement
         [ else (cond
-            [
-                (and (has_label line) (null? (cddr line)))
+            ;; if (has_label and does not have a statement), nothing to execute so 
+            ;; just return the cdr
+            [ (and (has_label line) (null? (cddr line)))
                 (cdr prgram)
             ]
-            [else (
-                 let ((stmt (if (has_label line) (caddr line) (cadr line) )))
-                            (printf "hey~n")
-                            (printf "Statement: ~s~n" stmt)
-                (cdr prgram)
-                     
+            ;; case 2 and 3 so there is a statement that must be executed.
+            [ else (
+                let ((stmt (if (has_label line) (caddr line) (cadr line) )))
+                    ;let body
+                    (printf "Statement: ~s~n" stmt)
+                    ;(cdr prgram)
+                    ;; go through the cases of all possible types of statements
+                    (cond
+                        [ (eqv? (car stmt) 'dim)
+                            (printf "Stmt is dim~n")
+                            (printf "Array name: ~s~n~n" (caadr stmt))
+                            (cdr prgram)
+                        
+                        ]
 
-            
+                        [ (eqv? (car stmt) 'let)
+                            (printf "Stmt is let~n~n")
+                            (cdr prgram)
+                        
+                        ]
+
+                        [ (eqv? (car stmt) 'goto)
+                            (printf "Stmt is goto~n~n")
+                            (cdr prgram)
+                        
+                        ]
+
+                        [ (eqv? (car stmt) 'if)
+                            (printf "Stmt is if~n~n")
+                            (cdr prgram)
+                        
+                        ]
+
+                        [ (eqv? (car stmt) 'print)
+                            (printf "Is print~n~n")
+                            (cdr prgram)
+                        
+                        ]
+
+                        [ (eqv? (car stmt) 'input)
+                            (printf "Is input~n~n")
+                            (cdr prgram)
+                        
+                        ]
+                        [ else 
+                            (printf "Stmt is invalid~n~n")
+                            (cdr prgram)
+                        
+                        ]
+
+                    )           
                 )
             ]
 
@@ -195,14 +240,13 @@
 )
 
 (define (interpreter prgram)
-    (printf "12~n")
    ; (printf "call to interpret prgram: ~s~n" (interpret prgram))
     (define sub_program (interpret prgram))
-    (printf "sub_program: ~s~n" sub_program)
+    ;(printf "sub_program: ~s~n" sub_program)
     ;; if the sub_program is null, then the program has completed interpreting so exit
     ;; otherwise recursively call interpreter on the sub-program
     (if (null? sub_program)
-        (printf "lol~n")
+        (printf "End of program*****~n")
         (interpreter sub_program))
 )
 
