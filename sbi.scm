@@ -15,14 +15,14 @@
 ;; *label-table* is hash table that will store all of the labels
 (define *label-table* (make-hash))
 (define (label-get key)
-        (hash-ref *label-table* key))
+        (hash-ref *label-table* key #f))
 (define (label-put! key value)
         (hash-set! *label-table* key value))
 
 ;; *function-table* is hash table that will store all of the functions
 (define *function-table* (make-hash))
 (define (function-get key)
-        (hash-ref *function-table* key))
+        (hash-ref *function-table* key #f))
 (define (function-put! key value)
         (hash-set! *function-table* key value))
 
@@ -30,12 +30,13 @@
 ;; *variable-table* is hash table that will store all of the variables
 (define *variable-table* (make-hash))
 (define (variable-get key)
-        (hash-ref *variable-table* key))
+        (hash-ref *variable-table* key #f))
 (define (variable-put! key value)
         (hash-set! *variable-table* key value))
 
 (variable-put! 'pi 3.141592653589793238462643383279502884197169399)
 (variable-put! 'e 2.718281828459045235360287471352662497757247093)
+(variable-put! 'inputcount 0)
 
 ;put values in function hash table
 (for-each
@@ -140,6 +141,69 @@
 
 ;)
 
+
+(define (readnumber)
+    (let ((object (read)))
+        (cond 
+            [(eof-object? object) object]
+            [(number? object) (+ object 0.0)]
+            [else (begin (printf "invalid number: ~a~n" object)
+                         (readnumber))]
+        )
+
+    )
+)
+
+(define (get-keyboard-input vars input-cnt)
+    (cond
+        ;; done reading the vars, so just update the input count with the number of variables read
+        [(null? vars) (variable-put! 'inputcount input-cnt)]
+        [ else
+            (let ((number (readnumber)))
+                (cond
+                    [(eof-object? number)
+                        (variable-put! 'inputcount -1)
+                    ]
+                    [else 
+                        (cond
+                            ;; if its a symbol, then just put it in the variable table
+                            [(symbol? (car vars)) (variable-put! (car vars) number)]
+                            ;; otherwise the car is a list which is an (array index)
+                            [else
+                                (cond
+                                    [(or (not(variable-get (caar vars))) (not (vector? (variable-get (caar vars)))))
+                                        (die `("Array not initialized"))
+                                    ]
+                                    ;; array is initilized, check to see if the subscript
+                                    ;; is in bounds
+                                    [else
+                                        (cond
+                                            ;; subscriript out of bounds -> dies
+                                            [(>= (cadar vars) (vector-length (variable-get (caar vars))))
+                                                (die `("Array subscript out of bounds"))
+                                            ]
+                                            ;; subscrtipt is in bounds -> array[subscript] = (cadar var) 
+                                            [else
+                                                (vector-set! (variable-get (caar vars)) (cadar vars) number)
+                                            ]
+
+                                        )    
+                                        
+                                    
+                                    ]
+
+                                )
+                            ]
+                        )                 
+                        (get-keyboard-input (cdr vars) (+ input-cnt 1))
+                    ]
+                )
+            )
+        ]
+    )
+
+)
+
 (define (evalexpr expr)
     (cond 
         [ (number? expr) (+ expr 0.0)]
@@ -196,12 +260,12 @@
             [ else 
                 (let ((stmt (if (has_label line) (caddr line) (cadr line) )))
                     ;let body
-                    (printf "Statement: ~s~n" stmt)
+                    ;(printf "Statement: ~s~n" stmt)
                     ;(cdr prgram)
                     ;; go through the cases of all possible types of statements
                     (cond
                         [ (eqv? (car stmt) 'dim)
-                            (printf "Stmt is dim~n")                         
+                            ;(printf "Stmt is dim~n")                         
                             ;; array can either be initialized with a literal number or with another variable
                             ;; In both cases, array name is specified by (caadr stmt) and the dimensionality
                             ;; is specified by the (cadadr stmt)
@@ -211,7 +275,7 @@
                         ]
 
                         [ (eqv? (car stmt) 'let)
-                            (printf "Stmt is let~n~n")
+                            ;(printf "Stmt is let~n~n")
                             ;; let can either be setting a normal variable or an index of an array
                             ( cond
                                 [ (symbol? (cadr stmt)) 
@@ -229,7 +293,7 @@
                         [ (eqv? (car stmt) 'goto)
                             ;; need to return the subprogram corresponding to the label following the goto
                             ;; rather than just returnin the cdr of the program
-                            (printf "Stmt is goto~n~n")
+                            ;(printf "Stmt is goto~n~n")
                             ;; watch out, may cause infinite loops in some programs because let is not implemented
                             (label-get (cadr stmt))
                             ;(cdr prgram)
@@ -237,7 +301,7 @@
                         ]
 
                         [ (eqv? (car stmt) 'if)
-                            (printf "Stmt is if~n~n")
+                            ;(printf "Stmt is if~n~n")
                             (cond
                                 [ (evalexpr (cadr stmt)) (label-get (caddr stmt))]
                                 [ else (cdr prgram)]
@@ -247,7 +311,7 @@
                         ]
 
                         [ (eqv? (car stmt) 'print)
-                            (printf "Is print~n")
+                            ;(printf "Is print~n")
                             (cond
                                 [ (null? (cdr stmt)) (newline)]
                                 [ (symbol? (cadr stmt)) (printf "~s~n" (evalexpr (cadr stmt)))]
@@ -265,7 +329,8 @@
                         ]
 
                         [ (eqv? (car stmt) 'input)
-                            (printf "Is input~n~n")
+                            ;(printf "Is input~n~n")
+                            (get-keyboard-input (cdr stmt) 0)
                             (cdr prgram)
                         
                         ]
