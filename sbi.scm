@@ -64,8 +64,13 @@
                 (sin ,sin)
                 (sqrt ,sqrt)
                 (tan ,tan)
-                (trunc ,truncate)  
-
+                (trunc ,truncate) 
+                (= ,=)
+                (< ,<)
+                (> ,>)
+                (<> ,(lambda (x y) (not(= x y))))
+                (<= ,<=)
+                (>= ,>=)
         )
 
 )
@@ -233,12 +238,28 @@
 
                         [ (eqv? (car stmt) 'if)
                             (printf "Stmt is if~n~n")
-                            (cdr prgram)
-                        
+                            (cond
+                                [ (evalexpr (cadr stmt)) (label-get (caddr stmt))]
+                                [ else (cdr prgram)]
+                            )
+                            
+                                                    
                         ]
 
                         [ (eqv? (car stmt) 'print)
-                            (printf "Is print~n~n")
+                            (printf "Is print~n")
+                            (cond
+                                [ (null? (cdr stmt)) (newline)]
+                                [ (symbol? (cadr stmt)) (printf "~s~n" (evalexpr (cadr stmt)))]
+                                [else
+                                    (printf (cadr stmt))
+                                    (cond
+                                        [ (null? (cddr stmt)) (newline) ]
+                                        [ else (printf " ~s~n" (evalexpr (caddr stmt)))]                          
+                                    )
+                                ]
+                            )
+                            
                             (cdr prgram)
                         
                         ]
