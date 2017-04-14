@@ -43,7 +43,7 @@
                 (function-put! (car pair) (cadr pair)))
 
         `(
-
+                (* ,*)
                 (+ ,+)
                 (- ,-)
                 (/ ,/)
@@ -135,6 +135,16 @@
 
 ;)
 
+(define (evalexpr expr)
+    (cond 
+        [ (number? expr) (+ expr 0.0)]
+        [ (symbol? expr) (variable-get expr) ]
+        [ (pair? expr) (apply (function-get (car expr)) (map evalexpr (cdr expr)))]
+        [ else #f ]
+    )
+
+)
+
 (define (interpret prgram)
     ;(printf "program: ~s~n" prgram)
     (define line (car prgram))
@@ -190,24 +200,23 @@
                             ;; array can either be initialized with a literal number or with another variable
                             ;; In both cases, array name is specified by (caadr stmt) and the dimensionality
                             ;; is specified by the (cadadr stmt)
-                            (cond
-                                ;; array dimensionality is specified by a number
-                                [ (number? (cadadr stmt))
-                                   (variable-put! (caadr stmt) (make-vector (cadadr stmt))) 
-                                ]
-                                ;; array dimensionality is specified by a variable 
-                                [ else
-                                    ;; uncomment when let works
-                                    (printf "let must be implemented. in dim~n~n")
-                                    ;(variable-put! (caadr stmt) (make-vector (variable-get (cadadr stmt))))
-                                ]
-                            )
+                            (variable-put! (caadr stmt) (make-vector (inexact->exact(evalexpr(cadadr stmt)))))
                             (cdr prgram)
                         
                         ]
 
                         [ (eqv? (car stmt) 'let)
                             (printf "Stmt is let~n~n")
+                            ;; let can either be setting a normal variable or an index of an array
+                            ( cond
+                                [ (symbol? (cadr stmt)) 
+                                     (variable-put! (cadr stmt) (evalexpr (caddr stmt)))
+                                ]
+                                [ else
+                                    (vector-set! (variable-get (caadr stmt)) (inexact->exact (evalexpr(cadadr stmt))) (evalexpr (caddr stmt)))
+                                    
+                                ]
+                            )
                             (cdr prgram)
                         
                         ]
@@ -287,7 +296,8 @@
               
                (interpreter program)
 
-
+               ;(define expr '(+ (* e 4) (* pi 2)))
+               ;(printf "Expr: ~s~n" (evalexpr expr))
 
                ;printing labels
                #|(hash-for-each *label-table*
@@ -296,10 +306,10 @@
                )|#
                ;(newline)
                ;printing variables 
-              #| (hash-for-each *variable-table*
+               (hash-for-each *variable-table*
                     (lambda (key value)
                         (printf "~s : ~s ~n" key value))
-               )|#
+               )
 
                ;(newline)
                ;printing variables
