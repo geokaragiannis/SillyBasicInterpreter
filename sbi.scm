@@ -208,8 +208,34 @@
     (cond 
         [ (number? expr) (+ expr 0.0)]
         [ (symbol? expr) (variable-get expr) ]
-        [ (pair? expr) (apply (function-get (car expr)) (map evalexpr (cdr expr)))]
+        [ (pair? expr)
+            (cond  
+                [ (vector? (variable-get (car expr))) 
+                    (vector-ref (variable-get (car expr)) (inexact->exact (evalexpr (cadr expr))))
+                ]
+                [else (apply (function-get (car expr)) (map evalexpr (cdr expr)))]
+            )
+
+        ]
         [ else #f ]
+    )
+
+)
+
+(define (print-helper stmt)
+    (cond
+        [ (null? stmt) (newline)]
+        [ (or (symbol? (car stmt)) (number? (car stmt)) (list? (car stmt))) 
+            (printf "~s " (evalexpr (car stmt))) 
+            (print-helper (cdr stmt))
+        ]
+        [else
+            (printf (car stmt))
+            (cond
+                [ (null? (cdr stmt)) (print-helper (cdr stmt)) ]
+                [ else (printf " ~s" (evalexpr (cadr stmt))) (print-helper (cddr stmt))]                          
+            )
+        ]
     )
 
 )
@@ -217,30 +243,7 @@
 (define (interpret prgram)
     ;(printf "program: ~s~n" prgram)
     (define line (car prgram))
-    (printf "line: ~s~n" line)
-    #|[if ((null? (cdr line)))
-        ; then
-        (
-            ;(printf "Cdr is null~n")
-            ;(printf "cdr prgram: ~s~n" (cdr prgram))
-            (cdr prgram)
-           
-        )
-        ; else
-        (
-            (printf "In else~n")
-            [if ((and ((has_label line)) ((null? (cddr line)))))
-                ; then 
-                ((cdr prgram))
-                ; else, the line contains a statement (can either have a label or not have one)
-                (
-                    (let ((stmt (if (has_label line) (caddr line) (cadr line) )))
-                            (printf "hey")
-                    ) 
-                )
-            ]
-        )
-    ]|#
+    (printf "line: ~s~n" line)       
 
     (cond 
         ;; if cdr of line is null then there is only a line number, so
@@ -269,7 +272,7 @@
                             ;; array can either be initialized with a literal number or with another variable
                             ;; In both cases, array name is specified by (caadr stmt) and the dimensionality
                             ;; is specified by the (cadadr stmt)
-                            (variable-put! (caadr stmt) (make-vector (inexact->exact(evalexpr(cadadr stmt)))))
+                            (variable-put! (caadr stmt) (make-vector (inexact->exact (evalexpr(cadadr stmt)))))
                             (cdr prgram)
                         
                         ]
@@ -312,18 +315,7 @@
 
                         [ (eqv? (car stmt) 'print)
                             ;(printf "Is print~n")
-                            (cond
-                                [ (null? (cdr stmt)) (newline)]
-                                [ (symbol? (cadr stmt)) (printf "~s~n" (evalexpr (cadr stmt)))]
-                                [else
-                                    (printf (cadr stmt))
-                                    (cond
-                                        [ (null? (cddr stmt)) (newline) ]
-                                        [ else (printf " ~s~n" (evalexpr (caddr stmt)))]                          
-                                    )
-                                ]
-                            )
-                            
+                            (print-helper (cdr stmt))                            
                             (cdr prgram)
                         
                         ]
@@ -359,7 +351,7 @@
     ;; if the sub_program is null, then the program has completed interpreting so exit
     ;; otherwise recursively call interpreter on the sub-program
     (if (null? sub_program)
-        (printf "End of program*****~n")
+        0
         (interpreter sub_program))
 )
 
@@ -390,7 +382,7 @@
                     (lambda (key value)
                         (printf "~s : ~s ~n" key value))
                )|#
-               ;(newline)
+               (newline)
                ;printing variables 
                (hash-for-each *variable-table*
                     (lambda (key value)
